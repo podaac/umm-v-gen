@@ -3,31 +3,49 @@ import re
 import sys
 import json
 import requests
+import warnings
 import xml.etree.ElementTree as etree
 from os.path import realpath, abspath, dirname, isfile, join
 from json.decoder import JSONDecodeError
 from argparse import ArgumentParser
 from netCDF4 import Dataset, numpy
+from netrc import netrc
+
+# Ignore deprecation warnings raised innocuously by numpy in netCDF4 ->
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 _cmr = "cmr.earthdata.nasa.gov"
 
-def _read_lptoken(cert: str="/launchpad_token_ngap_ops.json", **kwargs) -> str:
-    if not isfile(cert):
-        sys.stderr.write("Launchpad token is not available to the script!")
-        return ""
-    if 'environment' in kwargs:
-        cert = cert.replace("ops.json", f"{kwargs.get('environment')}.json")
+def _get_lptoken(cert: str, **kwargs) -> str:
     with open(cert, "r") as f:
-        text = f.read()
         try:
-            data = json.loads(text)
+            data = json.load(f)
         except json.decoder.JSONDecodeError as e:
-            text = "\n".join([l for l in text.split("\n") if '":,' not in l.replace(" ","")])
-            try:
-                data = json.loads(text)
-            except json.decoder.JSONDecodeError as e:
-                raise e
+            raise "Could not obtain Launchpad token!"
     return data.get("token")
+
+def _get_edltoken(urs: str, **kwargs) -> str:
+    url: str = f"https://{urs}/api/users"
+    username, _, password = netrc().authenticators(urs)
+    auth = requests.auth.HTTPBasicAuth(username, password)
+    try:
+        tokens = requests.get(f"{url}/tokens", auth=auth).json()
+        if len(tokens)==0:
+            tokens = [requests.post(f"{url}/token", auth=auth).json()]
+    except IndexError as e:
+        raise Exception("Could not obtain EDL token!")
+    else:
+        return tokens[0].get("access_token")
+
+def _get_token(**kwargs) -> str:
+    urs: str = "urs.earthdata.nasa.gov"
+    cert: str = "/launchpad_token_ngap_ops.json"
+    if 'environment' in kwargs:
+        env = kwargs.get('environment').lower()
+        if env != "ops":
+            urs = urs.replace("urs.", f"{env}.urs.")
+            cert = cert.replace("ops.json", f"{env}.json")
+    return _get_edltoken(urs) if not isfile(cert) else _get_lptoken(cert)
 
 # https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml
 _cf_names = join(abspath(dirname(realpath(__file__))), "resources/cf-standard-name-table.xml")
@@ -380,8 +398,8 @@ def main(granule:str, collection:str=None, variable:str=None, environment:str=No
         return ummv  # No concept-id provided to script as input.
     else: 
         # Otherwise, try to read launchpad token from the local json cert:
-        launchpad_token = _read_lptoken(environment=environment)
-        if launchpad_token is None:
+        cmr_token = _get_token(environment=environment)
+        if cmr_token is None:
             return ummv
 
     if environment in ['sit', 'uat']:
@@ -391,7 +409,7 @@ def main(granule:str, collection:str=None, variable:str=None, environment:str=No
 
     with requests.get(
         url=f"https://{_cmr}/search/concepts/{collection}.umm_json", 
-        headers={'Authorization': str(launchpad_token)}) as r:
+        headers={'Authorization': str(cmr_token)}) as r:
             ShortName = r.json().get("ShortName")
     if ShortName is None:
         raise Exception(f"Couldnt find collection matching the input concept-id '{collection}'. Abort")
@@ -405,7 +423,7 @@ def main(granule:str, collection:str=None, variable:str=None, environment:str=No
         ingest_url = f"https://{_cmr}/ingest/collections/{collection}/variables/{nid}"
         ingest_data = json.dumps(m,  default=convert, )
         ingest_log[nid] = requests.put(ingest_url, data=ingest_data, headers={
-            'Authorization': str(launchpad_token),
+            'Authorization': str(cmr_token),
             'Content-type': f"application/vnd.nasa.cmr.umm+json;version={_umm_var.split('/v')[-1]}",
             'Accept': "application/json",
         }).json()
