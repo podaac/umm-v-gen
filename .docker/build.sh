@@ -8,14 +8,14 @@ ROOT_DIR=$( dirname $(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null &
 
 source ${1:-$ROOT_DIR/.docker/.env}
 
-mv $PWD/.docker/build.log $PWD/.docker/build.log.old 2> /dev/null 
+mv $PWD/.docker/build.log $PWD/.docker/build.log.old 2> /dev/null
 
 touch $PWD/.docker/build.log
 
 echo "# built on: $(date +'%Y-%m-%d %H:%M:%S') from '$(hostname)'" >> $PWD/.docker/build.log
 
 # Download latest cf standard names xml into the app/resources/ directory:
-curl https://cfconventions.org/Data/cf-standard-names/81/src/cf-standard-name-table.xml \
+curl -s https://cfconventions.org/Data/cf-standard-names/81/src/cf-standard-name-table.xml \
     -o $PWD/app/resources/cf-standard-name-table.xml
 
 # Try to build the docker image:
@@ -71,4 +71,4 @@ docker run --rm \\
     umm-v-gen:latest \$ARGS
 
 exit 0;
-" > $PWD/.docker/ummv
+" > $PWD/.docker/ummv && chmod +x $PWD/.docker/ummv
