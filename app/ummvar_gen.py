@@ -13,9 +13,8 @@ _cmr = "cmr.earthdata.nasa.gov"
 
 def _read_lptoken(cert: str="/launchpad_token_ngap_ops.json", **kwargs) -> str:
     if not isfile(cert):
-        cert = "/home/podaacdev/certs/launchpad_token_ngap_ops.json"
-        if not isfile(cert):
-            raise Exception("A launchpad token is not available to the script!")
+        sys.stderr.write("Launchpad token is not available to the script!")
+        return ""
     if 'environment' in kwargs:
         cert = cert.replace("ops.json", f"{kwargs.get('environment')}.json")
     with open(cert, "r") as f:
@@ -30,7 +29,7 @@ def _read_lptoken(cert: str="/launchpad_token_ngap_ops.json", **kwargs) -> str:
                 raise e
     return data.get("token")
 
-#https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml
+# https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml
 _cf_names = join(abspath(dirname(realpath(__file__))), "resources/cf-standard-name-table.xml")
 
 def _read_cfnames(xml: str=_cf_names):
@@ -395,7 +394,7 @@ def main(granule:str, collection:str=None, variable:str=None, environment:str=No
         headers={'Authorization': str(launchpad_token)}) as r:
             ShortName = r.json().get("ShortName")
     if ShortName is None:
-        raise Exception(f"Failed to obtain collection ShortName for input concept-id '{collection}'. Abort")
+        raise Exception(f"Couldnt find collection matching the input concept-id '{collection}'. Abort")
 
     ingest_log = {}
     for m in ummv:
