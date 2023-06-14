@@ -27,7 +27,7 @@ Check the log in `.docker/build.log` if errors are reported to your shell.
 This command is equivalent to the example above:
 
 ```shell
-ummv 20230101004501-JPL-L2P_GHRSST-SSTskin-MODIS_A-N-v02.0-fv01.0.nc
+.docker/ummv 20230101004501-JPL-L2P_GHRSST-SSTskin-MODIS_A-N-v02.0-fv01.0.nc
 ```
 
 __Important usage note:__
