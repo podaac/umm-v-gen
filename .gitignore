@@ -1,0 +1,5 @@
+.DS_Store
+.vscode/
+.docker/ummv
+.docker/build.log*
+tests/*

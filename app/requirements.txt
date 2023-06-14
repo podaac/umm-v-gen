@@ -1,0 +1,8 @@
+certifi==2020.12.5  # https://github.com/certifi/python-certifi
+cftime==1.3.1       # https://unidata.github.io/cftime/
+chardet==4.0.0      # https://chardet.readthedocs.io/en/latest/
+idna==2.10          # https://github.com/kjd/idna
+netCDF4==1.5.5.1    # https://unidata.github.io/netcdf4-python/
+numpy==1.19.5       # https://numpy.org/doc/stable/index.html
+requests==2.25.1    # https://requests.readthedocs.io/en/master/
+urllib3==1.26.2     # https://urllib3.readthedocs.io/en/latest/
