@@ -16,13 +16,13 @@ Provide the concept-id of the target CMR collection to the `-c` parameter to att
 
 Use docker to build and run a containerized version of the script from any machine with docker engine installed.
 
-1. Run the following command from the repository root to build a local docker image and test the containerized script against the test granule specified in `.docker/.env`:
+1. Run the following command from the repository root to build a local docker image and test the containerized script against the test granule specified in [.docker/.env](.docker/.env):
 ```shell
 bash .docker/build.sh
 ```
 Check the log in `.docker/build.log` if errors are reported to your shell.
 
-2. Successful builds conclude by writing a wrapper script (`.docker/ummv`) to execute the containerized Python script within an ephemeral container. The user's input arguments are passed transparently to the script.
+2. Successful builds conclude by writing a wrapper script [.docker/ummv](.docker/ummv) to execute the containerized Python script within an ephemeral container. The user's input arguments are passed transparently to the script.
 
 This command is equivalent to the example above:
 
@@ -32,8 +32,9 @@ This command is equivalent to the example above:
 
 __Important usage note:__
 
-You must set the path to a local certs file in `.docker/.env` before running `.docker/build.sh` to build with CMR ingest support:
+You must set the path to a local certs file directory (`CERTS_DIR`) and a local test granule (`TESTS_GRAN`) in [.docker/.env](.docker/.env) before running [.docker/build.sh](.docker/build.sh) to build with CMR ingest support:
 ```bash
 CERTS_DIR=
+TESTS_GRAN=
 ```
 Contact [Jack McNelis](jmcnelis@jpl.nasa.gov) for more information about the format/content of the local certs file.
